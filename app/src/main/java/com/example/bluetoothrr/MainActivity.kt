@@ -13,6 +13,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        enableBluetooth()
+    }
+
+    private fun enableBluetooth(){
         val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
         if (bluetoothAdapter == null){
             exitProcess(-1)
@@ -21,6 +25,5 @@ class MainActivity : AppCompatActivity() {
             val enableBTIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableBTIntent, REQUEST_ENABLE_BT)
         }
-
     }
 }
