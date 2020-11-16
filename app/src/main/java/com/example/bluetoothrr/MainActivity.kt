@@ -1,46 +1,92 @@
 package com.example.bluetoothrr
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothServerSocket
+import android.bluetooth.BluetoothSocket
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
-import android.net.MacAddress
+import android.content.IntentFilter
+import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Message
+import android.util.Log
+import android.widget.ImageView
+import android.widget.TextView
+import java.io.IOException
+import java.util.*
 import kotlin.system.exitProcess
 
 const val REQUEST_ENABLE_BT = 5
-const val MAC_ADDRESS = "jfhuiauwhfuiah"
+const val MAC_ADDRESS = "jfhuiauwhfuiah" //Note to change this and other consts to an uncommitted file since we have a public repo
+val MY_UUID: UUID = UUID.randomUUID()
+const val NAME = "Bluetooth Risk Reduction Android"
+var bluetoothAdapter: BluetoothAdapter? = null
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        enableBluetooth()
-        if(!deviceAlreadyPaired()){
-            
-        }
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        connectDevice()
     }
 
-    private fun enableBluetooth(){
-        val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-        if (bluetoothAdapter == null){
-            exitProcess(-1)
-        }
-        if(!bluetoothAdapter.isEnabled){
-            val enableBTIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBTIntent, REQUEST_ENABLE_BT)
-        }
+    private fun connectDevice() {
+        val device: BluetoothDevice? = bluetoothAdapter?.getRemoteDevice(MAC_ADDRESS)
+        val connectThread: ConnectThread? = device?.let { ConnectThread(it) }
+        connectThread?.start()
     }
 
-    private fun deviceAlreadyPaired(): Boolean {
-        val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
-        val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
-        pairedDevices?.forEach { device ->
-            if (device.address.equals(MAC_ADDRESS)){
-                return true
+    private fun manageMyConnectedSocket(socket: BluetoothSocket){
+        val btService: MyBluetoothService = MyBluetoothService(mhandler)
+        btService.readImages(socket)
+    }
+
+    private val mhandler = @SuppressLint("HandlerLeak")
+    object : Handler() {
+        override fun handleMessage(msg: Message) {
+            when(msg.what){
+                MESSAGE_READ -> {
+                    (findViewById<TextView>(R.id.center_text)).text = msg.obj as CharSequence
+                    (findViewById<ImageView>(R.id.camera_feed)).setImageBitmap(msg.obj as Bitmap)
+                }
             }
         }
-        return false
+    }
+
+    private inner class ConnectThread(device: BluetoothDevice) : Thread() {
+
+        private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
+            device.createRfcommSocketToServiceRecord(MY_UUID)
+        }
+
+        public override fun run() {
+            // Cancel discovery because it otherwise slows down the connection.
+            //bluetoothAdapter?.cancelDiscovery()
+
+            mmSocket?.use { socket ->
+                // Connect to the remote device through the socket. This call blocks
+                // until it succeeds or throws an exception.
+                socket.connect()
+
+                // The connection attempt succeeded. Perform work associated with
+                // the connection in a separate thread.
+                manageMyConnectedSocket(socket)
+            }
+        }
+
+        // Closes the client socket and causes the thread to finish.
+        fun cancel() {
+            try {
+                mmSocket?.close()
+            } catch (e: IOException) {
+                Log.e(null, "Could not close the client socket", e)
+            }
+        }
     }
 }
