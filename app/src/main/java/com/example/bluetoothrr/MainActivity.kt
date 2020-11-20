@@ -52,9 +52,8 @@ class MainActivity : AppCompatActivity() {
         override fun handleMessage(msg: Message) {
             when(msg.what){
                 MESSAGE_READ -> {
-                    
-                    (findViewById<TextView>(R.id.center_text)).text = String(msg.obj as ByteArray)
-//                    (findViewById<ImageView>(R.id.camera_feed)).setImageBitmap(msg.obj as Bitmap)
+                    //(findViewById<TextView>(R.id.center_text)).text = String(msg.obj as ByteArray)
+                    (findViewById<ImageView>(R.id.camera_feed)).setImageBitmap(msg.obj as Bitmap)
                 }
             }
         }

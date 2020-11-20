@@ -1,12 +1,17 @@
 package com.example.bluetoothrr
 
 import android.bluetooth.BluetoothSocket
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.lang.NumberFormatException
+import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 
 private const val TAG = "MY_APP_DEBUG_TAG"
 
@@ -39,20 +44,61 @@ class MyBluetoothService(
             // try to read 1000 JPEGs
             for(i in 0 until 1000) {
                 // Read from the InputStream.
-                numBytes = try {
-                    mmInStream.read(mmBuffer)
-                } catch (e: IOException) {
+                val jpegBitmap: Bitmap? = try {
+                    getJpeg()
+                } catch (e: IOException){
                     Log.d(TAG, "Input stream was disconnected", e)
                     break
                 }
 
+                if(jpegBitmap == null){
+                    continue
+                }
+
                 // Send the obtained bytes to the UI activity.
                 val readMsg = handler.obtainMessage(
-                        MESSAGE_READ, numBytes, -1,
-                        mmBuffer)
+                        MESSAGE_READ, -1, -1,
+                        jpegBitmap)
                 readMsg.sendToTarget()
+//                TimeUnit.MILLISECONDS.sleep(2500)
             }
             cancel()
+        }
+
+        private fun getJpeg(): Bitmap? {
+
+            var numBytes = mmInStream.read(mmBuffer)
+            while (numBytes > 64){
+                numBytes = mmInStream.read(mmBuffer)
+            }
+            val headerString = String(mmBuffer, Charset.forName("UTF8")).substring(0, numBytes)
+            val size = getJpegLength(headerString)
+            if(size == -1){
+                return null
+            }
+            val jpegBytes = ArrayList<Byte>()
+            while(jpegBytes.size < size){
+                numBytes = mmInStream.read(mmBuffer)
+                jpegBytes.addAll(mmBuffer.filterIndexed { index, _ ->
+                    index < numBytes
+                }.asIterable())
+            }
+            jpegBytes.toByteArray()
+            val bitmap = BitmapFactory.decodeByteArray(jpegBytes.toByteArray(), 0, jpegBytes.size)
+            return bitmap
+        }
+
+        private fun getJpegLength(headerString: String): Int{
+            val headerMessage = "Content-Length: "
+            if(headerString.contains(headerMessage)){
+                return try {
+                    headerString.substring(headerMessage.length, headerString.length - 4).toInt()
+                } catch (e: NumberFormatException){
+                    -1
+                }
+            } else {
+                return -1
+            }
         }
 
         // Call this from the main activity to send data to the remote device.
