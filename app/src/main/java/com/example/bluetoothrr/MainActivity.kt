@@ -22,8 +22,8 @@ import java.util.*
 import kotlin.system.exitProcess
 
 const val REQUEST_ENABLE_BT = 5
-const val MAC_ADDRESS = "jfhuiauwhfuiah" //Note to change this and other consts to an uncommitted file since we have a public repo
-val MY_UUID: UUID = UUID.randomUUID()
+const val MAC_ADDRESS = "3C:71:BF:5F:81:7E" //Note to change this and other consts to an uncommitted file since we have a public repo
+val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 const val NAME = "Bluetooth Risk Reduction Android"
 var bluetoothAdapter: BluetoothAdapter? = null
 
@@ -52,8 +52,9 @@ class MainActivity : AppCompatActivity() {
         override fun handleMessage(msg: Message) {
             when(msg.what){
                 MESSAGE_READ -> {
-                    (findViewById<TextView>(R.id.center_text)).text = msg.obj as CharSequence
-                    (findViewById<ImageView>(R.id.camera_feed)).setImageBitmap(msg.obj as Bitmap)
+                    
+                    (findViewById<TextView>(R.id.center_text)).text = String(msg.obj as ByteArray)
+//                    (findViewById<ImageView>(R.id.camera_feed)).setImageBitmap(msg.obj as Bitmap)
                 }
             }
         }
@@ -62,12 +63,12 @@ class MainActivity : AppCompatActivity() {
     private inner class ConnectThread(device: BluetoothDevice) : Thread() {
 
         private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
-            device.createRfcommSocketToServiceRecord(MY_UUID)
+            device.createInsecureRfcommSocketToServiceRecord(MY_UUID)
         }
 
         public override fun run() {
             // Cancel discovery because it otherwise slows down the connection.
-            //bluetoothAdapter?.cancelDiscovery()
+            bluetoothAdapter?.cancelDiscovery()
 
             mmSocket?.use { socket ->
                 // Connect to the remote device through the socket. This call blocks
@@ -78,6 +79,7 @@ class MainActivity : AppCompatActivity() {
                 // the connection in a separate thread.
                 manageMyConnectedSocket(socket)
             }
+            Log.e(null, "resource was closed")
         }
 
         // Closes the client socket and causes the thread to finish.

@@ -23,7 +23,8 @@ class MyBluetoothService(
 
     fun readImages(socket: BluetoothSocket){
         val connectedThread: ConnectedThread = ConnectedThread(socket)
-        connectedThread.start()
+        connectedThread.run()
+        Log.e(null, "done running")
     }
 
     private inner class ConnectedThread(private val mmSocket: BluetoothSocket) : Thread() {
