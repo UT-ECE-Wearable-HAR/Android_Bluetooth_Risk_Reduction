@@ -60,7 +60,7 @@ class MyBluetoothService(
                         MESSAGE_READ, -1, -1,
                         jpegBitmap)
                 readMsg.sendToTarget()
-//                TimeUnit.MILLISECONDS.sleep(2500)
+                TimeUnit.MILLISECONDS.sleep(200)
             }
             cancel()
         }
@@ -84,6 +84,7 @@ class MyBluetoothService(
                 }.asIterable())
             }
             jpegBytes.toByteArray()
+            System.out.println("size: " + size.toString())
             val bitmap = BitmapFactory.decodeByteArray(jpegBytes.toByteArray(), 0, jpegBytes.size)
             return bitmap
         }
