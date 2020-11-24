@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.util.Log
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import java.io.IOException
@@ -33,10 +34,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-        connectDevice()
     }
 
-    private fun connectDevice() {
+    fun connectDevice(view: View) {
         val device: BluetoothDevice? = bluetoothAdapter?.getRemoteDevice(MAC_ADDRESS)
         val connectThread: ConnectThread? = device?.let { ConnectThread(it) }
         connectThread?.start()
