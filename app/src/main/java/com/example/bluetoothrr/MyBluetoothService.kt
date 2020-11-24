@@ -67,6 +67,15 @@ class MyBluetoothService(
 
         private fun getJpeg(): Bitmap? {
 
+            val byteMessage: ByteArray = "RCV_READY".toByteArray(Charsets.US_ASCII)
+            val byteArrLen: Int = byteMessage.size + 1
+            val byteArrToSend: ByteArray = ByteArray(byteArrLen)
+            for(i in byteMessage.indices){
+                byteArrToSend[i] = byteMessage[i]
+            }
+            byteArrToSend[byteArrLen - 1] = 0
+
+            mmOutStream.write(byteArrToSend)
             var numBytes = mmInStream.read(mmBuffer)
             while (numBytes > 64){
                 numBytes = mmInStream.read(mmBuffer)
