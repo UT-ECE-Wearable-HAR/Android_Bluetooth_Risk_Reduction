@@ -3,27 +3,21 @@ package com.example.bluetoothrr
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.Bitmap
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.util.Log
 import android.view.View
+import android.widget.EditText
 import android.widget.ImageView
-import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import java.io.IOException
 import java.util.*
-import kotlin.system.exitProcess
 
 const val REQUEST_ENABLE_BT = 5
-const val MAC_ADDRESS = "3C:71:BF:5F:81:7E" //Note to change this and other consts to an uncommitted file since we have a public repo
+ //Note to change some consts to an uncommitted file since we have a public repo
 val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 const val NAME = "Bluetooth Risk Reduction Android"
 var bluetoothAdapter: BluetoothAdapter? = null
@@ -37,7 +31,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun connectDevice(view: View) {
-        val device: BluetoothDevice? = bluetoothAdapter?.getRemoteDevice(MAC_ADDRESS)
+        val macAddress = findViewById<EditText>(R.id.mac_address_field).text.toString().trim()
+        val device: BluetoothDevice? = bluetoothAdapter?.getRemoteDevice(macAddress)
         val connectThread: ConnectThread? = device?.let { ConnectThread(it) }
         connectThread?.start()
     }
