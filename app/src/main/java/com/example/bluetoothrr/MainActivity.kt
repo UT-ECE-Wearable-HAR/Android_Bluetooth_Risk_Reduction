@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Message
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
@@ -31,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun connectDevice(view: View) {
+        findViewById<Button>(R.id.connect_button).isEnabled = false
         val macAddress = findViewById<EditText>(R.id.mac_address_field).text.toString().trim()
         val device: BluetoothDevice? = bluetoothAdapter?.getRemoteDevice(macAddress)
         val connectThread: ConnectThread? = device?.let { ConnectThread(it) }
